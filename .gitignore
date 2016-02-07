@@ -6,6 +6,7 @@
 *.ear
 
 # IntelliJ-specific files
+*.iml
 
 # User-specific stuff:
 .idea/workspace.xml
