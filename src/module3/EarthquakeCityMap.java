@@ -47,9 +47,8 @@ public class EarthquakeCityMap extends PApplet {
 	private UnfoldingMap map;
 	
 	//feed with magnitude 2.5+ Earthquakes
-	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
+	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.atom";
 
-	
 	public void setup() {
 		size(950, 600, OPENGL);
 
@@ -73,26 +72,29 @@ public class EarthquakeCityMap extends PApplet {
 	    //PointFeatures have a getLocation method
 	    List<PointFeature> earthquakes = ParseFeed.parseEarthquake(this, earthquakesURL);
 	    
-	    // These print statements show you (1) all of the relevant properties 
-	    // in the features, and (2) how to get one property and use it
 	    if (earthquakes.size() > 0) {
-	    	PointFeature f = earthquakes.get(0);
-	    	System.out.println(f.getProperties());
-	    	Object magObj = f.getProperty("magnitude");
-	    	float mag = Float.parseFloat(magObj.toString());
-	    	// PointFeatures also have a getLocation method
+	    	for (PointFeature earthquake : earthquakes) {
+				Object magnitudeObj = earthquake.getProperty("magnitude");
+                float magnitude = Float.parseFloat(magnitudeObj.toString());
+                SimplePointMarker marker = createMarker(earthquake);
+                if (magnitude >= THRESHOLD_MODERATE) {
+                    marker.setRadius(20);
+                    marker.setColor(color(255, 0, 0));
+                } else if (magnitude <= THRESHOLD_LIGHT) {
+                    marker.setRadius(5);
+                    marker.setColor(color(0, 0, 255));
+                } else if (magnitude > THRESHOLD_LIGHT && magnitude < THRESHOLD_MODERATE) {
+                    marker.setRadius(10);
+                    marker.setColor(color(255, 255, 0));
+                }
+                markers.add(marker);
+			}
 	    }
-	    
-	    // Here is an example of how to use Processing's color method to generate 
-	    // an int that represents the color yellow.  
-	    int yellow = color(255, 255, 0);
-	    
-	    //TODO: Add code here as appropriate
+        map.addMarkers(markers);
 	}
 		
 	// A suggested helper method that takes in an earthquake feature and 
 	// returns a SimplePointMarker for that earthquake
-	// TODO: Implement this method and call it from setUp, if it helps
 	private SimplePointMarker createMarker(PointFeature feature)
 	{
 		// finish implementing and use this method, if it helps.
@@ -107,10 +109,24 @@ public class EarthquakeCityMap extends PApplet {
 
 
 	// helper method to draw key in GUI
-	// TODO: Implement this method to draw the key
-	private void addKey() 
-	{	
-		// Remember you can use Processing's graphics methods here
-	
+	private void addKey()
+	{
+        fill(230,230,250);
+        rect(15,50,170,300,5);
+        textSize(20);
+        fill(20, 20, 20);
+        textAlign(CENTER);
+        text("Earthquake Key", 100, 70);
+        fill(255,0,0);
+        ellipse(30, 120, 20, 20);
+        textSize(15);
+        textAlign(LEFT);
+        text("5.0+ Magnitude", 50, 125);
+        fill(255,255,0);
+        ellipse(30, 170, 10, 10);
+        text("4.0+ Magnitude", 50, 175);
+        fill(0,0,255);
+        ellipse(30, 220, 5, 5);
+        text("Below 4.0", 50, 225);
 	}
 }
