@@ -47,7 +47,8 @@ public class EarthquakeCityMap extends PApplet {
 	private UnfoldingMap map;
 	
 	//feed with magnitude 2.5+ Earthquakes
-	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.atom";
+	private String earthquakesURL = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.atom";
+			//"http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.atom";
 
 	public void setup() {
 		size(950, 600, OPENGL);
