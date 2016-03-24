@@ -11,11 +11,13 @@ import de.fhpotsdam.unfolding.geo.Location;
 import de.fhpotsdam.unfolding.marker.AbstractShapeMarker;
 import de.fhpotsdam.unfolding.marker.Marker;
 import de.fhpotsdam.unfolding.marker.MultiMarker;
+import de.fhpotsdam.unfolding.marker.SimplePointMarker;
 import de.fhpotsdam.unfolding.providers.Google;
 import de.fhpotsdam.unfolding.providers.MBTilesMapProvider;
 import de.fhpotsdam.unfolding.utils.MapUtils;
 import parsing.ParseFeed;
 import processing.core.PApplet;
+import processing.core.PGraphics;
 
 /** EarthquakeCityMap
  * An application with an interactive map displaying earthquake data.
@@ -105,7 +107,7 @@ public class EarthquakeCityMap extends PApplet {
 	    }
 
 	    // could be used for debugging
-	    printQuakes();
+	    //printQuakes();
 	 		
 	    // (3) Add markers to map
 	    //     NOTE: Country markers are not added to the map.  They are used
@@ -145,7 +147,18 @@ public class EarthquakeCityMap extends PApplet {
 	// 
 	private void selectMarkerIfHover(List<Marker> markers)
 	{
-		// TODO: Implement this method
+		for(Marker marker : markers) {
+			if (marker.isInside(map, mouseX, mouseY) && lastSelected == null) {
+				if (marker instanceof CityMarker) {
+					System.out.println("City marker selected: " + ((CityMarker) marker).getCity());
+				} else if (marker instanceof EarthquakeMarker) {
+					System.out.println("Earthquake marker selected: " + ((EarthquakeMarker) marker).getTitle());
+				}
+				marker.setSelected(true);
+				lastSelected = (CommonMarker) marker;
+				return;
+			}
+		}
 	}
 	
 	/** The event handler for mouse clicks
@@ -156,9 +169,16 @@ public class EarthquakeCityMap extends PApplet {
 	@Override
 	public void mouseClicked()
 	{
-		// TODO: Implement this method
 		// Hint: You probably want a helper method or two to keep this code
 		// from getting too long/disorganized
+		if (lastClicked != null) {
+			lastSelected = null;
+			lastClicked = null;
+			unhideMarkers();
+		} else {
+			lastClicked = lastSelected;
+			hideMarkersOutsideOfThreatCircle(lastClicked);
+		}
 	}
 	
 	
@@ -170,6 +190,46 @@ public class EarthquakeCityMap extends PApplet {
 			
 		for(Marker marker : cityMarkers) {
 			marker.setHidden(false);
+		}
+	}
+
+	private void checkLastClicked(List<Marker> markersList) {
+		for (Marker marker : markersList) {
+			if (!marker.isHidden() && marker.isInside(map, mouseX, mouseY) && lastClicked == null) {
+				lastClicked = (CommonMarker) marker;
+			} else {
+				marker.setHidden(true);
+			}
+		}
+
+	}
+
+	// loop over and hide markers that are outside of threat circle
+	private void hideMarkersOutsideOfThreatCircle(Marker clickedMarker) {
+		if (clickedMarker instanceof CityMarker) {
+			for (Marker marker : cityMarkers) {
+				if (marker !=clickedMarker) {marker.setHidden(true);}
+			}
+			for (Marker marker : quakeMarkers) {
+				if (((EarthquakeMarker) marker).threatCircle() >= clickedMarker.getDistanceTo(marker.getLocation())) {
+					System.out.println(((CityMarker) clickedMarker).getCity()+ " in threat circle of " + ((EarthquakeMarker) marker).getTitle());
+					marker.setHidden(false);
+				} else {
+					marker.setHidden(true);
+				}
+			}
+		} else if (clickedMarker instanceof EarthquakeMarker) {
+			for (Marker marker : quakeMarkers) {
+				if (marker != clickedMarker) {marker.setHidden(true);}
+			}
+			for (Marker marker : cityMarkers) {
+				if(((EarthquakeMarker) clickedMarker).threatCircle() >= marker.getDistanceTo(clickedMarker.getLocation())) {
+					System.out.println(("City " + marker.getProperty("name") + " is in threat circle of " + ((EarthquakeMarker) clickedMarker).getTitle()));
+					marker.setHidden(false);
+				} else {
+					marker.setHidden(true);
+				}
+			}
 		}
 	}
 	
